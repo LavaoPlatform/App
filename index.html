@@ -986,34 +986,46 @@
             const onClickAction = isPickup ? `openServiceForm('${service.id}', 'pickup')` : `openServiceForm('${service.id}', 'delivery')`;
             const borderColor = isPickup ? 'border-yellow-400' : 'border-sky-500';
             const badgeColor = isPickup ? 'bg-yellow-100 text-yellow-800' : 'bg-sky-100 text-sky-800';
-            // --- INICIO DEL CÓDIGO A PEGAR ---
+            // --- INICIO DEL CÓDIGO DE REEMPLAZO (VERSIÓN 2) ---
     // --- NUEVO BLOQUE DE PRECIO (MODIFICADO) ---
     let priceDisplayHTML = '';
-    // Mostrar si NO está pagado Y tiene un valor asignado
-    if (service.pago === 'no' && service.valor_efectivo) {
+
+    // Mostrar SIEMPRE que haya un valor asignado
+    if (service.valor_efectivo) {
         const formattedPrice = `$${Number(service.valor_efectivo).toLocaleString('es-CO')}`;
-        
-        if (isPickup) {
-            // Es RECOGIDA: Solo mostrar el valor total del pedido (informativo)
-            priceDisplayHTML = `
-                <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg text-center shadow-inner">
-                    <p class="text-sm font-bold text-gray-800 uppercase tracking-wider">Valor Total del Pedido</p>
-                    <p class="text-3xl font-extrabold text-gray-700 mt-1">${formattedPrice}</p>
-                </div>
-            `;
+
+        if (service.pago === 'no') {
+            // --- LÓGICA NO PAGADO (SIN CAMBIOS) ---
+            if (isPickup) {
+                // Es RECOGIDA: (Informativo)
+                priceDisplayHTML = `
+                    <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg text-center shadow-inner">
+                        <p class="text-sm font-bold text-gray-800 uppercase tracking-wider">Valor Total del Pedido</p>
+                        <p class="text-3xl font-extrabold text-gray-700 mt-1">${formattedPrice}</p>
+                    </div>
+                `;
+            } else {
+                // Es ENTREGA: (Acción de cobro)
+                priceDisplayHTML = `
+                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-center shadow-inner">
+                        <p class="text-sm font-bold text-red-800 uppercase tracking-wider">Valor a Cobrar</spp
+                        <p class="text-3xl font-extrabold text-red-700 mt-1">${formattedPrice}</p>
+                    </div>
+                `;
+            }
         } else {
-            // Es ENTREGA: Mostrar el valor a COBRAR (acción)
+            // --- NUEVA LÓGICA (SÍ PAGADO) ---
+            // Sigue el diseño de 2 líneas para mantener la altura, como pediste
             priceDisplayHTML = `
-                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-center shadow-inner">
-                    <p class="text-sm font-bold text-red-800 uppercase tracking-wider">Valor a Cobrar</spp
-                    <p class="text-3xl font-extrabold text-red-700 mt-1">${formattedPrice}</p>
+                <div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg text-center shadow-inner opacity-80">
+                    <p class="text-3xl font-extrabold text-gray-500 line-through">${formattedPrice}</p>
+                    <p class="text-sm font-bold text-green-700 uppercase tracking-wider mt-1">Ya está Pago</p>
                 </div>
             `;
         }
     }
-    // --- FIN DEL NUEVO BLOQUE ---
-// --- FIN DEL CÓDIGO A PEGAR ---
-
+    // --- FIN DEL NUEVO BLOQUE (VERSIÓN 2) ---
+// --- FIN DEL CÓDIGO DE REEMPLAZO ---
             let paymentInfoHTML = '';
             if (!isPickup) { // Only for 'deliver' cards
                 if (service.pago === 'no') {
