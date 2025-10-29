@@ -986,6 +986,33 @@
             const onClickAction = isPickup ? `openServiceForm('${service.id}', 'pickup')` : `openServiceForm('${service.id}', 'delivery')`;
             const borderColor = isPickup ? 'border-yellow-400' : 'border-sky-500';
             const badgeColor = isPickup ? 'bg-yellow-100 text-yellow-800' : 'bg-sky-100 text-sky-800';
+            // --- INICIO DEL CÓDIGO A PEGAR ---
+    // --- NUEVO BLOQUE DE PRECIO (MODIFICADO) ---
+    let priceDisplayHTML = '';
+    // Mostrar si NO está pagado Y tiene un valor asignado
+    if (service.pago === 'no' && service.valor_efectivo) {
+        const formattedPrice = `$${Number(service.valor_efectivo).toLocaleString('es-CO')}`;
+        
+        if (isPickup) {
+            // Es RECOGIDA: Solo mostrar el valor total del pedido (informativo)
+            priceDisplayHTML = `
+                <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg text-center shadow-inner">
+                    <p class="text-sm font-bold text-gray-800 uppercase tracking-wider">Valor Total del Pedido</p>
+                    <p class="text-3xl font-extrabold text-gray-700 mt-1">${formattedPrice}</p>
+                </div>
+            `;
+        } else {
+            // Es ENTREGA: Mostrar el valor a COBRAR (acción)
+            priceDisplayHTML = `
+                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-center shadow-inner">
+                    <p class="text-sm font-bold text-red-800 uppercase tracking-wider">Valor a Cobrar</spp
+                    <p class="text-3xl font-extrabold text-red-700 mt-1">${formattedPrice}</p>
+                </div>
+            `;
+        }
+    }
+    // --- FIN DEL NUEVO BLOQUE ---
+// --- FIN DEL CÓDIGO A PEGAR ---
 
             let paymentInfoHTML = '';
             if (!isPickup) { // Only for 'deliver' cards
@@ -1051,14 +1078,17 @@
             return `
                 <div class="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden border-t-4 ${borderColor}">
                     <div class="p-5 flex-grow space-y-4">
-                        <div class="flex justify-between items-start">
-                            <span class="font-bold text-gray-800 text-lg tracking-wide">${service.id}</span>
-                            <span class="flex items-center text-sm font-semibold ${badgeColor} px-3 py-1 rounded-full">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                                ${service.items} pares
-                            </span>
-                        </div>
-                        <div class="space-y-3">
+                    <div class="flex justify-between items-start">
+                        <span class="font-bold text-gray-800 text-lg tracking-wide">${service.id}</span>
+                        <span class="flex items-center text-sm font-semibold ${badgeColor} px-3 py-1 rounded-full">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            ${service.items} pares
+                        </span>
+                    </div>
+
+                    ${priceDisplayHTML}
+
+                    <div class="space-y-3">
                             <div class="flex items-center text-gray-800">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 <p class="font-semibold ml-3">${service.customer}</p>
