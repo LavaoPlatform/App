@@ -659,6 +659,51 @@
             });
         }
         
+                                    `;
+
+
+                                    return `
+                                    <tr class="odd:bg-white even:bg-gray-50 hover:bg-cyan-50/50 transition-colors duration-200">
+                                        <td class="px-4 py-4 font-mono text-sm font-medium text-gray-900 whitespace-nowrap">${service.id}</td>
+                                        <td class="px-4 py-4 text-sm text-gray-800 whitespace-nowrap">${service.customer}</td>
+                                        <td class="px-4 py-4 font-mono text-sm text-gray-600 whitespace-nowrap hidden lg:table-cell">${service.phone || '—'}</td>
+                                        <td class="px-4 py-4 text-sm text-gray-600 whitespace-nowrap truncate max-w-[150px] sm:max-w-xs">${service.address}</td>
+                                        <td class="px-4 py-4 text-sm text-center font-medium text-gray-800 whitespace-nowrap">${service.items}</td>
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <div class="flex items-center justify-start gap-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${paymentStatusClass}">
+                                                    ${paymentIcon} ${paymentStatusText}
+                                                </span>
+                                                ${paymentButtonHTML}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-4 text-sm text-gray-600 whitespace-nowrap hidden md:table-cell">${paymentMethodText}</td>
+                                        <td class="px-4 py-4 font-mono text-sm text-right text-gray-800 whitespace-nowrap hidden lg:table-cell">
+                                            ${priceDisplayHTML}
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap hidden md:table-cell">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${receiptStatusClass}">
+                                               ${receiptIcon} ${receiptStatusText}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-4 text-center whitespace-nowrap"> ${photoButtonHTML}
+                                        </td>
+                                        <td class="px-4 py-4 text-sm text-center font-medium text-gray-800 whitespace-nowrap hidden xl:table-cell">${service.intentos_recogida || 0}</td>
+                                        <td class="px-4 py-4 text-sm text-center font-medium text-gray-800 whitespace-nowrap hidden xl:table-cell">${service.intentos_entrega || 0}</td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-center">
+                                            <span class="inline-flex px-2 py-0.5 text-xs font-semibold leading-5 rounded-full ${config.badgeColor}">
+                                                ${config.text}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
 // --- INICIO DEL CÓDIGO DE REEMPLAZO (VERSIÓN 2 - createServiceTableHTML) ---
         function createServiceTableHTML(serviceList, title) {
             if (!serviceList || serviceList.length === 0) {
@@ -790,113 +835,6 @@
             `;
         }
 // --- FIN DEL CÓDIGO DE REEMPLAZO (VERSIÓN 2 - createServiceTableHTML) ---
-
-            return `
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                    <div class="p-4 sm:p-6 border-b border-gray-200">
-                        <h3 class="text-base sm:text-lg font-semibold text-gray-800">${title}</h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-gray-600">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
-                                <tr>
-                                    <th scope="col" class="px-4 py-3">ID Pedido</th>
-                                    <th scope="col" class="px-4 py-3">Cliente</th>
-                                    <th scope="col" class="px-4 py-3 hidden lg:table-cell">Celular</th>
-                                    <th scope="col" class="px-4 py-3">Dirección</th>
-                                    <th scope="col" class="px-4 py-3 text-center">Pares</th>
-                                    <th scope="col" class="px-4 py-3">Pago</th>
-                                    <th scope="col" class="px-4 py-3 hidden md:table-cell">Método</th>
-                                    <th scope="col" class="px-4 py-3 text-right hidden lg:table-cell">Valor Pedido</th>
-                                    <th scope="col" class="px-4 py-3 hidden md:table-cell">Recibo</th>
-                                    <th scope="col" class="px-4 py-3 text-center hidden xl:table-cell">Intentos Recogida</th>
-                                    <th scope="col" class="px-4 py-3 text-center hidden xl:table-cell">Intentos Entrega</th>
-                                    <th scope="col" class="px-4 py-3 text-center">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                ${serviceList.map(service => {
-                                    const config = statusConfig[service.status] || statusConfig.default;
-                                    
-                                    const paymentStatusText = service.pago === 'si' ? 'Pagado' : 'No Pagado';
-                                    const paymentStatusClass = service.pago === 'si' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                                    const paymentIcon = service.pago === 'si' 
-                                        ? `<svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`
-                                        : `<svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>`;
-
-                                    const receiptStatusText = service.recibo === 'enviado' ? 'Enviado' : 'No Enviado';
-                                    const receiptStatusClass = service.recibo === 'enviado' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-800';
-                                    const receiptIcon = service.recibo === 'enviado'
-                                        ? `<svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>`
-                                        : `<svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-
-                                    let paymentMethodText = '—';
-                                     // Corregir la comparación aquí
-                                     if (service.metodo_pago === 'transferencia') {
-                                        paymentMethodText = 'Transferencia';
-                                    } else if (service.metodo_pago === 'efectivo') {
-                                        paymentMethodText = 'Efectivo';
-                                    }
-
-                                    const orderValueText = service.valor_efectivo ? `$${Number(service.valor_efectivo).toLocaleString('es-CO')}` : '—'; // Assuming valor_efectivo holds total value
-                                    
-                                    const paymentButtonHTML = service.pago !== 'si'
-                                        ? `<button onclick="showPaymentFormModal('${service.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Actualizar Pago">
-                                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z"></path></svg>
-                                           </button>`
-                                        : '';
-                                    
-                                    // --- LÓGICA DE BOTÓN EDITAR PRECIO MODIFICADA ---
-                                    let priceDisplayHTML = '';
-                                    if (service.status === 'en espera') {
-                                        priceDisplayHTML = `<button onclick="showPriceModal('${service.id}', '${service.items}', '${service.address}', '${service.valor_efectivo || ''}')" class="w-full px-3 py-2 text-sm font-semibold text-white bg-pink-500 rounded-lg hover:bg-pink-600 transition-colors whitespace-nowrap">
-                                                                Agregar Precio
-                                                            </button>`;
-                                    } else {
-                                        priceDisplayHTML = `<span>${orderValueText}</span>`;
-                                    }
-
-
-                                    return `
-                                    <tr class="odd:bg-white even:bg-gray-50 hover:bg-cyan-50/50 transition-colors duration-200">
-                                        <td class="px-4 py-4 font-mono text-sm font-medium text-gray-900 whitespace-nowrap">${service.id}</td>
-                                        <td class="px-4 py-4 text-sm text-gray-800 whitespace-nowrap">${service.customer}</td>
-                                        <td class="px-4 py-4 font-mono text-sm text-gray-600 whitespace-nowrap hidden lg:table-cell">${service.phone || '—'}</td>
-                                        <td class="px-4 py-4 text-sm text-gray-600 whitespace-nowrap truncate max-w-[150px] sm:max-w-xs">${service.address}</td>
-                                        <td class="px-4 py-4 text-sm text-center font-medium text-gray-800 whitespace-nowrap">${service.items}</td>
-                                        <td class="px-4 py-4 whitespace-nowrap">
-                                            <div class="flex items-center justify-start gap-2">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${paymentStatusClass}">
-                                                    ${paymentIcon} ${paymentStatusText}
-                                                </span>
-                                                ${paymentButtonHTML}
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-4 text-sm text-gray-600 whitespace-nowrap hidden md:table-cell">${paymentMethodText}</td>
-                                        <td class="px-4 py-4 font-mono text-sm text-right text-gray-800 whitespace-nowrap hidden lg:table-cell">
-                                            ${priceDisplayHTML}
-                                        </td>
-                                        <td class="px-4 py-4 whitespace-nowrap hidden md:table-cell">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${receiptStatusClass}">
-                                               ${receiptIcon} ${receiptStatusText}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-4 text-sm text-center font-medium text-gray-800 whitespace-nowrap hidden xl:table-cell">${service.intentos_recogida || 0}</td>
-                                        <td class="px-4 py-4 text-sm text-center font-medium text-gray-800 whitespace-nowrap hidden xl:table-cell">${service.intentos_entrega || 0}</td>
-                                        <td class="px-4 py-4 whitespace-nowrap text-center">
-                                            <span class="inline-flex px-2 py-0.5 text-xs font-semibold leading-5 rounded-full ${config.badgeColor}">
-                                                ${config.text}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
         
         function renderAdminServices() {
             const wrapper = document.getElementById('admin-content-wrapper');
