@@ -931,7 +931,7 @@
             }
 
             container.innerHTML = laundryJobs.map(service => {
-                 const imageUrls = service.imageUrls || []; // Asegurar que sea un array
+                 const imageUrls = service.pickupImageUrls || []; // Asegurar que sea un array
                  const hasImages = imageUrls.length > 0;
                  const galleryId = `gallery-${service.id}`;
 
