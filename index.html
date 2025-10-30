@@ -225,12 +225,25 @@
             
             <div class="flex justify-between items-center p-6 border-b border-gray-200">
                 <div>
-                    <h3 class="text-xl font-bold text-gray-900">Fotos de Recogida</h3>
+                    <h3 id="gallery-modal-title" class="text-xl font-bold text-gray-900">Fotos de Recogida</h3>
                     <p id="gallery-modal-subtitle" class="text-sm text-gray-500 mt-1">Pedido: LAV-X</p>
                 </div>
                 <button id="gallery-modal-close-btn" type="button" class="p-2 -m-2 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
+            </div>
+
+            <div id="gallery-modal-tabs" class="hidden px-6 pt-4">
+                <div class="border-b border-gray-200">
+                    <nav class="flex -mb-px space-x-6">
+                        <button id="gallery-tab-pickup" type="button" class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-brand text-brand">
+                            Fotos de Recogida
+                        </button>
+                        <button id="gallery-tab-delivery" type="button" class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                            Fotos de Entrega
+                        </button>
+                    </nav>
+                </div>
             </div>
 
             <div class="p-4 md:p-6">
@@ -251,7 +264,7 @@
                     </div>
                 </div>
             </div>
-            <div id="gallery-modal-data" data-urls='[]' data-index="0" class="hidden"></div>
+            <div id="gallery-modal-data" data-pickup-urls='[]' data-delivery-urls='[]' data-current-gallery="pickup" data-index="0" class="hidden"></div>
         </div>
     </div>
 
@@ -429,6 +442,12 @@
         const galleryModalCounter = document.getElementById('gallery-modal-counter');
         const galleryModalData = document.getElementById('gallery-modal-data');
 // --- FIN DEL CÓDIGO A PEGAR (REFERENCIAS GALERÍA) ---
+        // --- INICIO DEL CÓDIGO A PEGAR (REFERENCIAS TABS GALERÍA) ---
+        const galleryModalTabs = document.getElementById('gallery-modal-tabs');
+        const galleryModalTitle = document.getElementById('gallery-modal-title'); // Actualizamos el título
+        const galleryTabPickup = document.getElementById('gallery-tab-pickup');
+        const galleryTabDelivery = document.getElementById('gallery-tab-delivery');
+// --- FIN DEL CÓDIGO A PEGAR (REFERENCIAS TABS GALERÍA) ---
 
         // --- Almacenamiento de Datos ---
         let services = [];
@@ -659,7 +678,7 @@
             });
         }
         
-// --- INICIO DEL CÓDIGO DE REEMPLAZO (VERSIÓN 2 - createServiceTableHTML) ---
+// --- INICIO DEL CÓDIGO DE REEMPLAZO (VERSIÓN 3 - createServiceTableHTML) ---
         function createServiceTableHTML(serviceList, title) {
             if (!serviceList || serviceList.length === 0) {
                 return `<div class="bg-white rounded-2xl shadow-lg p-6 sm:p-8 text-center text-gray-500">
@@ -708,14 +727,13 @@
                                         : `<svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
 
                                     let paymentMethodText = '—';
-                                      // Corregir la comparación aquí
                                       if (service.metodo_pago === 'transferencia') {
                                           paymentMethodText = 'Transferencia';
                                     } else if (service.metodo_pago === 'efectivo') {
                                           paymentMethodText = 'Efectivo';
                                     }
 
-                                    const orderValueText = service.valor_efectivo ? `$${Number(service.valor_efectivo).toLocaleString('es-CO')}` : '—'; // Assuming valor_efectivo holds total value
+                                    const orderValueText = service.valor_efectivo ? `$${Number(service.valor_efectivo).toLocaleString('es-CO')}` : '—';
                                     
                                     const paymentButtonHTML = service.pago !== 'si'
                                         ? `<button onclick="showPaymentFormModal('${service.id}')" class="p-1 rounded-full hover:bg-gray-200 transition-colors" title="Actualizar Pago">
@@ -723,7 +741,6 @@
                                            </button>`
                                         : '';
                                     
-                                    // --- LÓGICA DE BOTÓN EDITAR PRECIO MODIFICADA ---
                                     let priceDisplayHTML = '';
                                     if (service.status === 'en espera') {
                                         priceDisplayHTML = `<button onclick="showPriceModal('${service.id}', '${service.items}', '${service.address}', '${service.valor_efectivo || ''}')" class="w-full px-3 py-2 text-sm font-semibold text-white bg-pink-500 rounded-lg hover:bg-pink-600 transition-colors whitespace-nowrap">
@@ -733,18 +750,25 @@
                                         priceDisplayHTML = `<span>${orderValueText}</span>`;
                                     }
 
-                                    // --- NUEVA LÓGICA DEL BOTÓN DE FOTOS ---
-                                    const imageUrls = service.imageUrls || [];
-                                    const hasImages = imageUrls.length > 0;
+                                    // --- LÓGICA DEL BOTÓN DE FOTOS ACTUALIZADA ---
+                                    const pickupUrls = service.pickupImageUrls || [];
+                                    const deliveryUrls = service.deliveryImageUrls || [];
+                                    const hasImages = pickupUrls.length > 0 || deliveryUrls.length > 0;
+                                    
+                                    // Codificar ambos arrays para pasarlos al HTML
+                                    const encodedPickupUrls = encodeURIComponent(JSON.stringify(pickupUrls));
+                                    const encodedDeliveryUrls = encodeURIComponent(JSON.stringify(deliveryUrls));
+                                    
                                     const photoButtonHTML = `
                                         <button 
-                                            onclick="showPhotoGalleryModal('${encodeURIComponent(JSON.stringify(imageUrls))}', '${service.id}')" 
+                                            onclick="showPhotoGalleryModal('${encodedPickupUrls}', '${encodedDeliveryUrls}', '${service.id}', '${service.status}')" 
                                             class="p-2 rounded-full transition-colors ${hasImages ? 'text-brand hover:bg-cyan-100' : 'text-gray-300 cursor-not-allowed'}" 
                                             ${!hasImages ? 'disabled' : ''}
                                             title="Ver Fotos">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                         </button>
                                     `;
+                                    // --- FIN DE LÓGICA ACTUALIZADA ---
 
 
                                     return `
@@ -789,7 +813,8 @@
                 </div>
             `;
         }
-// --- FIN DEL CÓDIGO DE REEMPLAZO (VERSIÓN 2 - createServiceTableHTML) ---
+// --- FIN DEL CÓDIGO DE REEMPLAZO (VERSIÓN 3 - createServiceTableHTML) ---
+
         
         function renderAdminServices() {
             const wrapper = document.getElementById('admin-content-wrapper');
@@ -1929,41 +1954,54 @@
             Object.values(settingsMenus).forEach(m => m.classList.add('hidden'));
         });
 
-// --- INICIO DEL CÓDIGO A PEGAR (FUNCIONES DE GALERÍA) ---
+// --- INICIO DEL CÓDIGO DE REEMPLAZO (FUNCIONES DE GALERÍA V2) ---
 
-        // --- LÓGICA DEL MODAL DE GALERÍA DE FOTOS (Admin) ---
+        // --- LÓGICA DEL MODAL DE GALERÍA DE FOTOS (Admin) V2 ---
+
+        /**
+         * Helper para decodificar y parsear las URLs de forma segura.
+         * @param {string} encodedUrls - El string JSON codificado.
+         * @returns {Array} - Un array de URLs.
+         */
+        function parseUrls(encodedUrls) {
+            try {
+                return JSON.parse(decodeURIComponent(encodedUrls));
+            } catch (e) {
+                console.error("Error al parsear URLs de imágenes:", e, encodedUrls);
+                return []; // Devolver siempre un array
+            }
+        }
 
         /**
          * Muestra el modal de la galería de fotos.
-         * @param {string} encodedImageUrls - Un string JSON de las URLs de las imágenes, codificado para URI.
-         * @param {string} serviceId - El ID del servicio para mostrar en el subtítulo.
+         * @param {string} encodedPickupUrls - URLs de recogida (JSON string codificado)
+         * @param {string} encodedDeliveryUrls - URLs de entrega (JSON string codificado)
+         * @param {string} serviceId - El ID del servicio.
+         * @param {string} status - El estado actual del servicio (ej. 'entregado')
          */
-        function showPhotoGalleryModal(encodedImageUrls, serviceId) {
-            let imageUrls = [];
-            try {
-                // Decodificar y parsear el array de URLs
-                imageUrls = JSON.parse(decodeURIComponent(encodedImageUrls));
-            } catch (e) {
-                console.error("Error al parsear URLs de imágenes:", e);
-                imageUrls = []; // Asegurar que sea un array
-            }
+        function showPhotoGalleryModal(encodedPickupUrls, encodedDeliveryUrls, serviceId, status) {
+            const pickupUrls = parseUrls(encodedPickupUrls);
+            const deliveryUrls = parseUrls(encodedDeliveryUrls);
 
             galleryModalSubtitle.textContent = `Pedido: ${serviceId}`;
             
-            if (!imageUrls || imageUrls.length === 0) {
-                // No debería pasar si el botón está deshabilitado, pero por si acaso
-                galleryModalImage.src = 'https://placehold.co/600x600/cccccc/ffffff?text=No+hay+fotos';
-                galleryModalCounter.textContent = '0 / 0';
-                galleryModalPrevBtn.disabled = true;
-                galleryModalNextBtn.disabled = true;
-                galleryModalData.dataset.urls = '[]';
-                galleryModalData.dataset.index = '0';
+            // Almacenar ambos arrays en el dataset
+            galleryModalData.dataset.pickupUrls = JSON.stringify(pickupUrls);
+            galleryModalData.dataset.deliveryUrls = JSON.stringify(deliveryUrls);
+            
+            // --- LÓGICA DEL SWITCH (PESTAÑAS) ---
+            // Mostrar pestañas SOLO si el estado es 'entregado' Y hay fotos de entrega
+            const showTabs = (status === 'entregado' && deliveryUrls.length > 0);
+            
+            if (showTabs) {
+                galleryModalTabs.classList.remove('hidden');
+                // Empezar por defecto en la pestaña de Recogida
+                switchToGallery('pickup'); 
             } else {
-                // Cargar la primera imagen y configurar el estado
-                galleryModalImage.src = imageUrls[0];
-                galleryModalData.dataset.urls = JSON.stringify(imageUrls);
-                galleryModalData.dataset.index = '0';
-                updateGalleryNavigation(0, imageUrls.length);
+                // Ocultar pestañas para "En Lavandería" y "Listos"
+                galleryModalTabs.classList.add('hidden');
+                // Mostrar directamente la galería de Recogida
+                switchToGallery('pickup'); 
             }
 
             // Mostrar el modal con animación
@@ -1982,28 +2020,69 @@
             galleryModalContent.classList.remove('scale-100', 'opacity-100');
             setTimeout(() => {
                 photoGalleryModal.classList.add('hidden');
-                galleryModalImage.src = ''; // Limpiar la imagen para la próxima vez
+                galleryModalImage.src = ''; // Limpiar la imagen
             }, 200);
         }
 
         /**
-         * Cambia la imagen mostrada en el modal de la galería.
+         * Cambia la galería activa (Recogida o Entrega) al hacer clic en una pestaña.
+         * @param {string} galleryType - 'pickup' o 'delivery'
+         */
+        function switchToGallery(galleryType) {
+            // Establecer galería activa
+            galleryModalData.dataset.currentGallery = galleryType;
+
+            let urls = [];
+            if (galleryType === 'pickup') {
+                urls = JSON.parse(galleryModalData.dataset.pickupUrls);
+                
+                // Actualizar estilo de pestañas
+                galleryTabPickup.classList.add('border-brand', 'text-brand');
+                galleryTabPickup.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                galleryTabDelivery.classList.remove('border-brand', 'text-brand');
+                galleryTabDelivery.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                galleryModalTitle.textContent = "Fotos de Recogida"; // Actualizar título
+                
+            } else { // 'delivery'
+                urls = JSON.parse(galleryModalData.dataset.deliveryUrls);
+
+                // Actualizar estilo de pestañas
+                galleryTabDelivery.classList.add('border-brand', 'text-brand');
+                galleryTabDelivery.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                galleryTabPickup.classList.remove('border-brand', 'text-brand');
+                galleryTabPickup.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                galleryModalTitle.textContent = "Fotos de Entrega"; // Actualizar título
+            }
+
+            // Cargar la primera imagen de la galería seleccionada
+            galleryModalData.dataset.index = '0';
+            if (urls.length > 0) {
+                galleryModalImage.src = urls[0];
+                updateGalleryNavigation(0, urls.length);
+            } else {
+                // Mostrar placeholder si esta galería no tiene fotos
+                galleryModalImage.src = 'https://placehold.co/600x600/cccccc/ffffff?text=No+hay+fotos';
+                updateGalleryNavigation(-1, 0); // Muestra "0 / 0"
+            }
+        }
+
+        /**
+         * Cambia la imagen mostrada en la galería activa.
          * @param {number} direction - 1 para siguiente, -1 para anterior.
          */
         function changeModalImage(direction) {
-            const urls = JSON.parse(galleryModalData.dataset.urls || '[]');
+            const currentGallery = galleryModalData.dataset.currentGallery;
+            // Cargar el array de URLs correcto (pickup o delivery)
+            const urls = (currentGallery === 'pickup')
+                ? JSON.parse(galleryModalData.dataset.pickupUrls)
+                : JSON.parse(galleryModalData.dataset.deliveryUrls);
+                
             let currentIndex = parseInt(galleryModalData.dataset.index, 10);
             
-            if (urls.length <= 1) return;
+            if (urls.length <= 1) return; // No hacer nada si solo hay 1 foto
 
-            let nextIndex = currentIndex + direction;
-
-            // Manejo de límites
-            if (nextIndex < 0) {
-                nextIndex = urls.length - 1; // Loop al final
-            } else if (nextIndex >= urls.length) {
-                nextIndex = 0; // Loop al inicio
-            }
+            // Fórmula de módulo para hacer loop (funciona para positivo y negativo)
+            let nextIndex = (currentIndex + direction + urls.length) % urls.length;
 
             galleryModalImage.src = urls[nextIndex];
             galleryModalData.dataset.index = nextIndex;
@@ -2012,23 +2091,30 @@
 
         /**
          * Actualiza el contador y el estado de los botones de navegación.
-         * @param {number} index - El índice de la imagen actual.
+         * @param {number} index - El índice de la imagen actual (-1 si está vacío).
          * @param {number} total - El número total de imágenes.
          */
         function updateGalleryNavigation(index, total) {
-            galleryModalCounter.textContent = `${index + 1} / ${total}`;
-            // Los botones siempre están habilitados si hay más de 1 foto, ya que hacen loop
+            if (total === 0) {
+                galleryModalCounter.textContent = '0 / 0';
+            } else {
+                galleryModalCounter.textContent = `${index + 1} / ${total}`;
+            }
+            // Los botones solo se activan si hay más de 1 foto
             const enabled = total > 1;
             galleryModalPrevBtn.disabled = !enabled;
             galleryModalNextBtn.disabled = !enabled;
         }
 
-        // --- Event Listeners para el Modal de Galería ---
+        // --- Event Listeners para el Modal de Galería (V2) ---
         galleryModalCloseBtn.addEventListener('click', hidePhotoGalleryModal);
         galleryModalPrevBtn.addEventListener('click', () => changeModalImage(-1));
         galleryModalNextBtn.addEventListener('click', () => changeModalImage(1));
+        // Nuevos listeners para las pestañas
+        galleryTabPickup.addEventListener('click', () => switchToGallery('pickup'));
+        galleryTabDelivery.addEventListener('click', () => switchToGallery('delivery'));
 
-// --- FIN DEL CÓDIGO A PEGAR (FUNCIONES DE GALERÍA) ---    </script>
+// --- FIN DEL CÓDIGO DE REEMPLAZO (FUNCIONES DE GALERÍA V2) ---  </script>
 </body>
 </html>
 
